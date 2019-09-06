@@ -1,7 +1,10 @@
 import React, { Component } from "react";
 import CSSModules from "react-css-modules";
+import { Link } from "react-router-dom";
+import { Button, Header, Image, Modal } from "semantic-ui-react";
 
 import Spotlight from "./spotlight";
+import MapLinks from "./custom-comp";
 import css from "./index.css";
 import * as axiosWrapper from "../../../utilities/axios/wrapper";
 
@@ -10,13 +13,13 @@ class AboutUsPage extends Component {
     super(props);
     this.state = {
       creators: [],
-      creator: {},
-      updatedCreator: {}
+      originalSettingsForCreator: {},
+      tempCreatorUsedForUpdating: {}
     };
   }
   componentDidMount() {
     axiosWrapper
-      .get("/creators")
+      .get("/items/123")
       .then(response => {
         console.log("about us response", response);
         this.setState({ creators: response.data.creators });
@@ -32,8 +35,8 @@ class AboutUsPage extends Component {
       .then(response => {
         console.log("spotligh response", response);
         this.setState({
-          creator: response.data.creator,
-          updatedCreator: response.data.creator
+          originalSettingsForCreator: response.data.creator,
+          tempCreatorUsedForUpdating: response.data.creator
         });
       })
       .catch(err => {
@@ -44,8 +47,8 @@ class AboutUsPage extends Component {
   updateCreator = event => {
     event.preventDefault();
     this.setState({
-      updatedCreator: {
-        ...this.state.updatedCreator,
+      tempCreatorUsedForUpdating: {
+        ...this.state.tempCreatorUsedForUpdating,
         firstName: event.target.value
       }
     });
@@ -54,40 +57,64 @@ class AboutUsPage extends Component {
   submitCreatorUpdate = (event, userhandle) => {
     event.preventDefault();
     axiosWrapper
-      .put(`/creators/${userhandle}`, { creator: this.state.updatedCreator })
+      .put(``, {
+        creator: this.state.tempCreatorUsedForUpdating
+      })
       .then(response => {
         console.log("updated creator response", response);
         const { creator } = response.data;
-        this.setState({ creator: creator, updateCreator: creator });
+        this.setState({
+          originalSettingsForCreator: creator,
+          tempCreatorUsedForUpdating: creator
+        });
       })
       .catch(err => {
         console.log("Error fetching daily message");
       });
   };
 
+  // <Link to={`/users/${creator.userhandle}`}>
+  //   {creator.firstName}
+  // </Link>
   render() {
     return (
       <div styleName="container">
+        <Modal trigger={<Button>Show Modal</Button>}>
+          <Modal.Header>Select a Photo</Modal.Header>
+          <Modal.Content image>
+            <Image
+              wrapped
+              size="medium"
+              src="/images/avatar/large/rachel.png"
+            />
+            <Modal.Description>
+              <Header>Pick an awesome profile pic</Header>
+              <p>
+                We've found the following gravatar image associated with your
+                e-mail address.
+              </p>
+              <p>Is it okay to use this photo?</p>
+            </Modal.Description>
+          </Modal.Content>
+        </Modal>
         <aside styleName="left-side-menu">
           <ol>
-            {this.state.creators.map((creator, index) => {
-              return (
-                <li
-                  key={index}
-                  onClick={event =>
-                    this.fetchCreatorDetails(event, creator.userHandle)
-                  }
-                >
-                  {creator.firstName}
-                </li>
-              );
-            })}
+            <MapLinks
+              render={item => (
+                <Link to={`/user/${item.userHandle}`}>{item.firstName}</Link>
+              )}
+              items={this.state.creators}
+            />
+            <MapLinks
+              render={item => <div>Hi there {item.firstName}</div>}
+              items={this.state.creators}
+            />
           </ol>
         </aside>
         <div styleName="right-main">
           <Spotlight
-            creator={this.state.creator}
-            updatedCreator={this.state.updatedCreator}
+            originalSettingsForCreator={this.state.originalSettingsForCreator}
+            tempCreatorUsedForUpdating={this.state.tempCreatorUsedForUpdating}
             updateCreator={this.updateCreator}
             submitCreatorUpdate={this.submitCreatorUpdate}
           />

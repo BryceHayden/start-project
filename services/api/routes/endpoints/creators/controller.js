@@ -11,11 +11,6 @@ export default class AuthController {
   async updateCreator(req, res) {
     const { id } = req.params;
     const { creator } = req.body;
-    console.log(
-      "I am responding to a put request on /creators/:id",
-      creator,
-      id
-    );
 
     if (creator.firstName === "Benny") {
       res.send({
@@ -30,7 +25,6 @@ export default class AuthController {
 
   async creatorSpotlight(req, res) {
     const { id } = req.params;
-    console.log("ID", id, req.params);
     const creator = await getCreatorInfo(id);
     res.send({ creator });
   }
